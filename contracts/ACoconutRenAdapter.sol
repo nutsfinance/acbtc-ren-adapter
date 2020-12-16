@@ -31,10 +31,7 @@ interface IGatewayRegistry {
 }
 
 interface IAcoconutSwap {
-    function getMintAmount(uint256[] calldata _amounts)
-        external
-        view
-        returns (uint256, uint256);
+    function poolToken() external view returns (IERC20);
 
     function mint(uint256[] calldata _amounts, uint256 _minMintAmount) external;
 }
@@ -45,51 +42,43 @@ contract ACoconutRenAdapter {
 
     IGatewayRegistry public registry;
     IAcoconutSwap public acSwap;
-    IERC20 public acBTC;
-    IERC20 public renBTC;
 
     constructor(
         address _registry,
-        address _acSwap,
-        address _acBTC
+        address _acSwap
     ) public {
         require(_registry != address(0x0), "registry not set");
         require(_acSwap != address(0x0), "acSwap not set");
-        require(_acBTC != address(0x0), "acBTC not set");
 
         registry = IGatewayRegistry(_registry);
         acSwap = IAcoconutSwap(_acSwap);
-        acBTC = IERC20(_acBTC);
-        renBTC = registry.getTokenBySymbol("BTC");
+        IERC20 acBTC = acSwap.poolToken();
 
         acBTC.safeApprove(address(acSwap), uint256(-1));
-        renBTC.safeApprove(address(acSwap), uint256(-1));
     }
 
     function mint(
         // Parameters from users
         address _target,
-        uint256 _minMintAmount,
         // Parameters from Darknodes
         uint256 _amount,
         bytes32 _nHash,
         bytes calldata _sig
     ) public {
-        bytes32 pHash = keccak256(abi.encode(_target, _minMintAmount));
-        uint256 renBtcAmount = registry.getGatewayBySymbol("BTC").mint(pHash, _amount, _nHash, _sig);
+        bytes32 pHash = keccak256(abi.encode(_target));
+        uint256 renBtcAmount = registry.getGatewayBySymbol("BTC").mint(
+            pHash,
+            _amount,
+            _nHash,
+            _sig
+        );
+
         uint256[] memory amounts = new uint256[](2);
         amounts[1] = renBtcAmount;
-        (uint256 mintAmount,) = acSwap.getMintAmount(amounts);
-
-        if (mintAmount >= _minMintAmount) {
-            // If it does not go beyond the slippage, mint acBTC
-            uint256 beforeAmount = acBTC.balanceOf(address(this));
-            acSwap.mint(amounts, _minMintAmount);
-            uint256 afterAmount = acBTC.balanceOf(address(this));
-            acBTC.safeTransfer(_target, afterAmount.sub(beforeAmount));
-        } else {
-            // Otherwise, send the renBTC to user!
-            renBTC.safeTransfer(_target, renBtcAmount);
-        }
+        IERC20 acBTC = acSwap.poolToken();
+        uint256 beforeAmount = acBTC.balanceOf(address(this));
+        acSwap.mint(amounts, 0);
+        uint256 afterAmount = acBTC.balanceOf(address(this));
+        acBTC.safeTransfer(_target, afterAmount.sub(beforeAmount));
     }
 }
