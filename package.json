@@ -1,0 +1,27 @@
+{
+  "name": "acbtc-ren-adapter",
+  "version": "1.0.0",
+  "description": "RenBTC adapter for acBTC",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nutsfinance/acbtc-ren-adapter.git"
+  },
+  "keywords": [
+    "renBTC",
+    "acBTC",
+    "BTC"
+  ],
+  "author": "tech@nuts.finance",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nutsfinance/acbtc-ren-adapter/issues"
+  },
+  "homepage": "https://github.com/nutsfinance/acbtc-ren-adapter#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.3.0"
+  }
+}
