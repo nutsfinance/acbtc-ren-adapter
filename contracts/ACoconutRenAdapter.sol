@@ -53,8 +53,10 @@ contract ACoconutRenAdapter {
         registry = IGatewayRegistry(_registry);
         acSwap = IAcoconutSwap(_acSwap);
         IERC20 acBTC = acSwap.poolToken();
+        IERC20 renBTC = registry.getTokenBySymbol("BTC");
 
         acBTC.safeApprove(address(acSwap), uint256(-1));
+        renBTC.safeApprove(address(acSwap), uint256(-1));
     }
 
     function mint(
