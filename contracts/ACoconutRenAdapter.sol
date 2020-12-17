@@ -40,6 +40,8 @@ contract ACoconutRenAdapter {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    event Mint(address indexed _receiver, uint256 _renBtcAmount, uint256 _acBtcAmount);
+
     IGatewayRegistry public registry;
     IAcoconutSwap public acSwap;
 
@@ -78,9 +80,10 @@ contract ACoconutRenAdapter {
         uint256[] memory amounts = new uint256[](2);
         amounts[1] = renBtcAmount;
         IERC20 acBTC = acSwap.poolToken();
-        uint256 beforeAmount = acBTC.balanceOf(address(this));
         acSwap.mint(amounts, 0);
-        uint256 afterAmount = acBTC.balanceOf(address(this));
-        acBTC.safeTransfer(_target, afterAmount.sub(beforeAmount));
+        uint256 acBtcAmount = acBTC.balanceOf(address(this));
+        acBTC.safeTransfer(_target, acBtcAmount);
+
+        emit Mint(_target, renBtcAmount, acBtcAmount);
     }
 }
